@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Supabase User App</title>
+</head>
+<body>
+    <div style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: white; padding: 12px 24px; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <span>✨ Looking for the beautifully designed, glassmorphic version of this app?</span>
+        <a href="/" style="color: white; text-decoration: underline; font-weight: 700; margin-left: 4px;">Launch Premium Dashboard →</a>
+    </div>
+
+    <h2>Add User</h2>
+
+    <input type="text" id="name" placeholder="Enter Name">
+    <button onclick="addUser()">Save</button>
+
+    <h3>Users</h3>
+    <ul id="userList"></ul>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        const supabaseUrl = "https://dwunumnikuafvlgcgrnw.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3dW51bW5pa3VhZnZsZ2Nncm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NzQyNzUsImV4cCI6MjA5NTQ1MDI3NX0.BgCiYlDmZhFqwgc9p4b9Rhq884t0mKV1ZPJ2TpAVQtA";
+
+        const supabaseClient = supabase.createClient(
+            supabaseUrl,
+            supabaseKey
+        );
+
+        async function addUser() {
+            const name = document.getElementById("name").value;
+
+            if (!name) {
+                alert("Please enter a name");
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from("users")
+                .insert([{ name: name }]);
+
+            if (error) {
+                console.error(error);
+                alert(error.message);
+                return;
+            }
+
+            document.getElementById("name").value = "";
+            loadUsers();
+        }
+
+        async function loadUsers() {
+            const { data, error } = await supabaseClient
+                .from("users")
+                .select("*");
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            const list = document.getElementById("userList");
+            list.innerHTML = "";
+
+            data.forEach(user => {
+                const li = document.createElement("li");
+                li.textContent = user.name;
+                list.appendChild(li);
+            });
+        }
+
+        loadUsers();
+    </script>
+
+</body>
+</html>

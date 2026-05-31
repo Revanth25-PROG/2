@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Meta Tags -->
+    <title>Supabase Real-Time User Directory</title>
+    <meta name="description" content="A state-of-the-art glassmorphic user directory connected to a secure Supabase backend. Experience clean design, micro-interactions, and real-time synchronization.">
+    
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Premium CSS Styles -->
+    <style>
+        :root {
+            --bg-color: #080c14;
+            --card-bg: rgba(17, 25, 40, 0.65);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --success: #10b981;
+            --error: #ef4444;
+            --input-bg: rgba(255, 255, 255, 0.03);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --input-focus: rgba(99, 102, 241, 0.4);
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            padding: 3rem 1rem;
+        }
+
+        /* Animated Ambient Background Glows */
+        .glow-1 {
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+            animation: drift 20s infinite alternate;
+        }
+
+        .glow-2 {
+            position: absolute;
+            bottom: -10%;
+            right: -10%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+            animation: drift 25s infinite alternate-reverse;
+        }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(5%, 5%) scale(1.1); }
+        }
+
+        /* Glassmorphic Container */
+        .dashboard-container {
+            width: 100%;
+            max-width: 520px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            text-align: center;
+            align-items: center;
+        }
+
+        .logo-container {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            margin-bottom: 0.25rem;
+        }
+
+        .logo-container svg {
+            width: 28px;
+            height: 28px;
+            fill: url(#logo-grad);
+        }
+
+        .app-title {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #ffffff, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--success);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Stats Panel */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Section Title */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Form Styles */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            color: var(--text-muted);
+            pointer-events: none;
+            width: 20px;
+            height: 20px;
+        }
+
+        .modern-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 14px;
+            padding: 0.9rem 1rem 0.9rem 2.75rem;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .modern-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .modern-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px var(--input-focus);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Primary Button */
+        .modern-btn {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 14px;
+            padding: 0.9rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modern-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: all 0.6s ease;
+        }
+
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -8px rgba(99, 102, 241, 0.6);
+        }
+
+        .modern-btn:hover::before {
+            left: 100%;
+        }
+
+        .modern-btn:active {
+            transform: translateY(0);
+        }
+
+        .modern-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Search Section */
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Interactive Users List */
+        .users-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            flex-grow: 1;
+            max-height: 290px;
+            overflow-y: auto;
+            padding-right: 0.25rem;
+        }
+
+        /* Custom Scrollbar for Users List */
+        .users-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .users-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .users-section::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 999px;
+        }
+
+        .users-section::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 0.85rem 1rem;
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-badge {
+            background: rgba(99, 102, 241, 0.08);
+            color: #818cf8;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 2.5rem 1rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 44px;
+            height: 44px;
+            stroke: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .empty-text {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(17, 24, 39, 0.9);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(50px);
+            opacity: 0;
+            animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            pointer-events: auto;
+            max-width: 320px;
+        }
+
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--error); }
+
+        .toast-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .toast-icon.success svg { stroke: var(--success); }
+        .toast-icon.error svg { stroke: var(--error); }
+
+        .toast-message {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        @keyframes toastIn {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes toastOut {
+            to {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Navigation Banner Link */
+        .dev-badge {
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            opacity: 0.7;
+        }
+
+        .dev-badge:hover {
+            color: var(--text-secondary);
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        /* SVG Color Gradients */
+        svg defs linearGradient stop {
+            transition: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Gradient Backgrounds -->
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+
+    <main class="dashboard-container">
+        <!-- SVG Gradient Definitions -->
+        <svg style="width:0; height:0; position:absolute;" aria-hidden="true" focusable="false">
+            <defs>
+                <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#6366f1" />
+                    <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-container">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.366 11.238L12.593 1.25a.8.8 0 0 0-1.312.124l-3.238 6.012a.4.4 0 0 1-.587.164L1.758 4.23a.8.8 0 0 0-1.196.896l3.376 13.913a2 2 0 0 0 1.944 1.528h11.905a2 2 0 0 0 1.97-1.67l1.782-9.799a.8.8 0 0 0-.373-.86zM12 16.5a2.5 2.5 0 1 1 2.5-2.5 2.5 2.5 0 0 1-2.5 2.5z"/>
+                </svg>
+            </div>
+            <h1 class="app-title">User Directory</h1>
+            <div class="status-badge">
+                <span class="status-dot"></span>
+                <span>Live Database</span>
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="totalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Database Sync</div>
+                <div class="stat-value" style="font-size:1.1rem; color:var(--success); font-weight:600; margin-top:0.3rem;">ONLINE</div>
+            </div>
+        </section>
+
+        <!-- Add User Section -->
+        <section class="form-group">
+            <div class="section-header">
+                <h2 class="section-title">Add Directory Profile</h2>
+            </div>
+            <div class="input-wrapper">
+                <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <input type="text" id="name" class="modern-input" placeholder="Enter full name" autocomplete="off">
+            </div>
+            <button id="addBtn" onclick="addUser()" class="modern-btn">
+                <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+                <span>Save Profile</span>
+            </button>
+        </section>
+
+        <!-- Users Directory Section -->
+        <section style="display:flex; flex-direction:column; gap:0.5rem;">
+            <div class="section-header">
+                <h2 class="section-title">Directory Database</h2>
+            </div>
+            
+            <!-- Real-time Filter Search -->
+            <div class="search-wrapper">
+                <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" id="search" class="modern-input" placeholder="Search directory..." oninput="filterUsers()" style="padding: 0.75rem 1rem 0.75rem 2.75rem; border-radius: 12px; font-size: 0.85rem;">
+            </div>
+
+            <!-- List container -->
+            <div class="users-section" id="userList">
+                <div class="empty-state">
+                    <span class="spinner"></span>
+                    <div class="empty-text">Connecting to database...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Developer/Raw fallback toggle -->
+    <a href="/rev.html" class="dev-badge">
+        <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+        </svg>
+        <span>View Original raw code</span>
+    </a>
+
+    <!-- Custom Toasts container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Supabase CDN Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Dynamic Script Logic -->
+    <script>
+        // Supabase Initialization
+        const supabaseUrl = "https://dwunumnikuafvlgcgrnw.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3dW51bW5pa3VhZnZsZ2Nncm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NzQyNzUsImV4cCI6MjA5NTQ1MDI3NX0.BgCiYlDmZhFqwgc9p4b9Rhq884t0mKV1ZPJ2TpAVQtA";
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        let localUsersArray = []; // Keep cache for search filtering and stats
+
+        // Sleek Custom Toast Notifications
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const iconSvg = type === 'success' 
+                ? `<svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`
+                : `<svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+
+            toast.innerHTML = `
+                <div class="toast-icon ${type}">${iconSvg}</div>
+                <div class="toast-message">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto destroy toast after 3.5 seconds
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards';
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 3200);
+        }
+
+        // Add user functionality with interactive state indicators
+        async function addUser() {
+            const nameInput = document.getElementById("name");
+            const btn = document.getElementById("addBtn");
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                showToast("Please enter a profile name", "error");
+                return;
+            }
+
+            // Save original button state and trigger loading state
+            const origContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner"></span> <span>Saving profile...</span>`;
+
+            try {
+                const { error } = await supabaseClient
+                    .from("users")
+                    .insert([{ name: name }]);
+
+                if (error) {
+                    throw error;
+                }
+
+                showToast(`Successfully added "${name}" to directory!`);
+                nameInput.value = "";
+                await loadUsers(); // Refresh the list
+            } catch (err) {
+                console.error(err);
+                showToast(err.message || "Failed to add profile", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origContent;
+            }
+        }
+
+        // Custom initials avatar generator with vibrant gradients
+        function getAvatarStyle(name) {
+            const colors = [
+                ['#4f46e5', '#818cf8'], // indigo
+                ['#7c3aed', '#a78bfa'], // purple
+                ['#2563eb', '#60a5fa'], // blue
+                ['#0d9488', '#2dd4bf'], // teal
+                ['#059669', '#34d399'], // emerald
+                ['#db2777', '#f472b6'], // pink
+                ['#c026d3', '#e879f9'], // fuchsia
+                ['#ea580c', '#fb923c']  // orange
+            ];
+            // Simple hash algorithm to select gradient
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const index = Math.abs(hash) % colors.length;
+            const gradient = colors[index];
+            return `background: linear-gradient(135deg, ${gradient[0]}, ${gradient[1]});`;
+        }
+
+        function getInitials(name) {
+            const parts = name.split(' ').filter(p => p);
+            if (parts.length === 0) return '?';
+            if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+            return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+        }
+
+        // Render users list dynamically with micro-animations
+        function renderUsers(users) {
+            const list = document.getElementById("userList");
+            list.innerHTML = "";
+
+            if (users.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state" style="animation: slideUp 0.3s ease forwards; opacity: 0;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div class="empty-text">No directory profiles match this query</div>
+                    </div>
+                `;
+                return;
+            }
+
+            users.forEach((user, idx) => {
+                const initials = getInitials(user.name);
+                const avatarStyle = getAvatarStyle(user.name);
+                const item = document.createElement("div");
+                item.className = "user-item";
+                // Staggered animation delay
+                item.style.animationDelay = `${idx * 0.05}s`;
+                
+                item.innerHTML = `
+                    <div class="user-avatar" style="${avatarStyle}">${initials}</div>
+                    <div class="user-details">
+                        <div class="user-name">${escapeHTML(user.name)}</div>
+                        <div class="user-meta">
+                            <span class="user-badge">ID: #${user.id}</span>
+                            <span>Active Profiling</span>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function escapeHTML(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Live real-time UI filtering
+        function filterUsers() {
+            const query = document.getElementById("search").value.toLowerCase().trim();
+            const filtered = localUsersArray.filter(u => u.name.toLowerCase().includes(query));
+            renderUsers(filtered);
+        }
+
+        // Load users from Supabase API
+        async function loadUsers() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from("users")
+                    .select("*");
+
+                if (error) {
+                    throw error;
+                }
+
+                // Sort by ID descending or newly added first
+                localUsersArray = data ? data.sort((a, b) => b.id - a.id) : [];
+                
+                // Update stats counter
+                document.getElementById("totalCount").textContent = localUsersArray.length;
+                
+                // Apply search filter if active, else render all
+                filterUsers();
+            } catch (err) {
+                console.error(err);
+                document.getElementById("userList").innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        <div class="empty-text" style="color: var(--error);">Error syncing with directory: ${escapeHTML(err.message)}</div>
+                    </div>
+                `;
+                showToast("Failed to load user directory", "error");
+            }
+        }
+
+        // Trigger loading when component mounts
+        loadUsers();
+    </script>
+</body>
+</html>
